@@ -3,12 +3,17 @@ from fastapi import HTTPException
 import jwt
 import logging
 from pydantic import BaseModel
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 # Azure AD configuration
-AZURE_TENANT_ID = "ef1d4b1e-bd3c-4e1e-a8de-525e802c43d1"
-AZURE_CLIENT_ID = "95f37204-669c-4dc9-a9a7-292918a0a5f8"
+AZURE_TENANT_ID = os.getenv("TENANT_ID")
+AZURE_CLIENT_ID = os.getenv("API_CLIENT_ID")
 
 class UserClaims(BaseModel):
     """User claims extracted from JWT token."""
