@@ -1,0 +1,6 @@
+fastmcp
+python-dotenv
+fastapi-azure-auth
+fastapi
+dotenv
+msal

@@ -1,0 +1,75 @@
+import dotenv
+import uvicorn
+import logging
+from fastapi import FastAPI, Security
+from fastapi.middleware.cors import CORSMiddleware
+from os import environ
+from auth import azure_scheme
+
+dotenv.load_dotenv("../../.env")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    swagger_ui_oauth2_redirect_url='/oauth2-redirect',
+    swagger_ui_init_oauth={
+        'usePkceWithAuthorizationCodeGrant': True,
+        'clientId': environ.get("FE_CLIENT_ID"),
+        'scopes': environ.get("SCOPE")
+    },
+)
+
+logger.info(f"=-=-=-=-=-=-=-=-=-=-=-=-=-=-= FastAPI Backend Server =-=-=-=-=-=-=-=-=")
+logger.info(f"API Client ID is: {environ.get('APP_CLIENT_ID')}")
+logger.info(f"Front-end Client ID is: {environ.get('FE_CLIENT_ID')}")
+logger.info(f"Tenant Id is: {environ.get('TENANT_ID')}")
+logger.info(f"Scopes are: {environ.get('API_SCOPES')}")
+logger.info(f"Front-end scope is: {environ.get('SCOPE')}")
+
+app.add_middleware(CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Simple API endpoints
+@app.get("/hello/{name}")
+async def hello(name: str):
+    """
+    Simple hello endpoint that greets a user by name.
+    
+    Args:
+        name (str): The name to greet
+        
+    Returns:
+        dict: A greeting message
+    """
+    return {"message": f"Hello {name}"}
+
+@app.get("/add/{num1}/{num2}", dependencies=[Security(azure_scheme)])
+async def add_numbers(num1: float, num2: float):
+    """
+    Simple addition endpoint that adds two numbers.
+    
+    Args:
+        num1 (float): First number
+        num2 (float): Second number
+        
+    Returns:
+        dict: The sum of the two numbers
+    """
+    result = num1 + num2
+    return {"num1": num1, "num2": num2, "sum": result}
+
+@app.get("/mcp/", dependencies=[Security(azure_scheme)])
+async def call_mcp():
+    pass
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
